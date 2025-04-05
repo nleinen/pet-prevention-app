@@ -21,7 +21,7 @@ const PetPreventionApp = () => {
         rows.forEach((row) => {
           const cells = row.split(',');
 
-          if (cells.length < 8) return;  
+          if (cells.length < 8) return;
 
           const [species, weightMin, weightMax, name, coverage, sixMonthPrice, twelveMonthPrice, description] = cells.map(cell => cell.trim());
 
@@ -63,6 +63,12 @@ const handleGenerate = () => {
     parsedWeight <= rec.weightMax
   );
 
+  const orderedProducts = {
+    "Heartworm/Flea/Tick": ["Simparica Trio", "Proheart 12 + Bravecto 3m", "Proheart 12 + Nexgard", "Heartgard Plus + Nexgard"],
+    "Heartworm": ["Proheart 12", "Heartgard Plus"],
+    "Flea/Tick": ["Bravecto 3m", "Nexgard"]
+  };
+
   const organizedRecommendations = matchedRecommendations.reduce((acc, rec) => {
     if (!acc[rec.coverage]) acc[rec.coverage] = [];
     acc[rec.coverage].push(rec);
@@ -70,52 +76,20 @@ const handleGenerate = () => {
   }, {});
 
   const sortedCoverageKeys = ["Heartworm/Flea/Tick", "Heartworm", "Flea/Tick"];
-  const sortedRecommendations = sortedCoverageKeys
-    .map(key => ({ [key]: organizedRecommendations[key] || [] }))
-    .filter(group => Object.values(group)[0].length > 0);
-
-  // Sorting Products within Categories
-  sortedRecommendations.forEach(group => {
-    const category = Object.keys(group)[0];
-    const products = group[category];
-
-    if (category === "Heartworm/Flea/Tick") {
-      products.sort((a, b) => {
-        const desiredOrder = [
-          "Simparica Trio", 
-          "Proheart 12 + Bravecto 3m", 
-          "Proheart 12 + Nexgard", 
-          "Heartgard Plus + Nexgard"
-        ];
-        return desiredOrder.indexOf(a.name) - desiredOrder.indexOf(b.name);
-      });
-    }
-
-    if (category === "Heartworm") {
-      products.sort((a, b) => {
-        const desiredOrder = ["Proheart 12", "Heartgard Plus"];
-        return desiredOrder.indexOf(a.name) - desiredOrder.indexOf(b.name);
-      });
-    }
-
-    if (category === "Flea/Tick") {
-      products.sort((a, b) => {
-        const desiredOrder = ["Bravecto", "Nexgard"];
-        return desiredOrder.indexOf(a.name) - desiredOrder.indexOf(b.name);
-      });
-    }
-  });
+  const sortedRecommendations = sortedCoverageKeys.map(key => {
+    const products = organizedRecommendations[key] || [];
+    products.sort((a, b) => orderedProducts[key].indexOf(a.name) - orderedProducts[key].indexOf(b.name));
+    return { [key]: products };
+  }).filter(group => Object.values(group)[0].length > 0);
 
   setRecommendationsList(sortedRecommendations);
 };
 
   return (
-    <div style={{ fontFamily: 'Roboto, Helvetica, Arial, sans-serif', padding: '10px', backgroundColor: '#f0f4f8', maxWidth: '1000px', margin: '0 auto', borderRadius: '10px', boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)' }}>
-      <h1 style={{ color: '#0D6EFD', textAlign: 'center', fontSize: '32px', fontWeight: '700', marginBottom: '10px' }}>
-        Pet Prevention Recommendation Tool
-      </h1>
-      <div style={{ marginBottom: '10px', textAlign: 'center' }}>
-        <select value={species} onChange={(e) => setSpecies(e.target.value)} style={{ padding: '8px', borderRadius: '5px', border: '1px solid #0D6EFD', marginRight: '5px', fontSize: '16px' }}>
+    <div style={styles.container}>
+      <h1 style={styles.title}>Pet Prevention Recommendation Tool</h1>
+      <div style={styles.inputContainer}>
+        <select value={species} onChange={(e) => setSpecies(e.target.value)} style={styles.input}>
           <option value="dog">Dog</option>
           <option value="cat">Cat</option>
         </select>
@@ -124,47 +98,81 @@ const handleGenerate = () => {
           value={weight} 
           onChange={(e) => setWeight(e.target.value)} 
           placeholder="Enter Weight (lbs)" 
-          style={{ padding: '8px', borderRadius: '5px', border: '1px solid #0D6EFD', marginRight: '5px', fontSize: '16px', width: '150px' }}
+          style={styles.input}
         />
-        <button onClick={handleGenerate} style={{ padding: '8px 15px', borderRadius: '5px', backgroundColor: '#0D6EFD', color: 'white', border: 'none', fontSize: '16px' }}>
+        <button onClick={handleGenerate} style={styles.button}>
           Generate
         </button>
       </div>
-      {recommendationsList.map((coverageGroup, index) => {
-        const coverageType = Object.keys(coverageGroup)[0];
-        const products = coverageGroup[coverageType];
-        
-        return (
-          <div key={index} style={{ marginBottom: '15px' }}>
-            <h2 style={{ color: '#0D6EFD', fontSize: '24px', marginBottom: '5px' }}>{coverageType}</h2>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '18px', textAlign: 'center' }}>
-              <thead>
-                <tr style={{ backgroundColor: '#0D6EFD', color: 'white' }}>
-                  <th>Product</th>
-                  <th>Description</th>
-                  <th>6-Month Price</th>
-                  <th>12-Month Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {products.map((rec, index) => (
-                  <tr key={index}>
-                    <td>{rec.name}</td>
-                    <td>{rec.description}</td>
-                    <td>{rec.prices["6-month"] || "N/A"}</td>
-                    <td>{rec.prices["12-month"] || "N/A"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        );
-      })}
+      {error && <div style={styles.error}>{error}</div>}
+      <div style={styles.tableContainer}>
+        {recommendationsList.map((group, index) => {
+          const coverageType = Object.keys(group)[0];
+          const products = group[coverageType];
+
+          return (
+            <div key={index} style={styles.coverageGroup}>
+              <h2 style={styles.header}>{coverageType}</h2>
+              {products.map((rec, idx) => (
+                <div key={idx} style={styles.productContainer}>
+                  <div style={styles.leftColumn}>
+                    <strong style={{ fontSize: '14px' }}>{rec.name}</strong><br />
+                    <span style={{ fontSize: '13px' }}>{rec.description}</span>
+                  </div>
+                  <div style={styles.rightColumn}>
+                    <div style={{ fontSize: '14px' }}>6-Month: {rec.prices['6-month'] || 'N/A'}</div>
+                    <div style={{ fontSize: '14px' }}>12-Month: {rec.prices['12-month'] || 'N/A'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
 
+const styles = {
+  container: {
+    padding: '20px',
+    backgroundColor: '#f0f4f8',
+    maxWidth: '1200px',
+    margin: '0 auto',
+    borderRadius: '12px',
+  },
+  title: {
+    textAlign: 'center',
+    fontSize: '28px',
+    marginBottom: '20px',
+  },
+  productContainer: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '10px',
+    marginBottom: '10px',
+    border: '1px solid #0D6EFD',
+    borderRadius: '8px',
+    alignItems: 'center',
+  },
+  leftColumn: {
+    width: '50%',
+  },
+  rightColumn: {
+    width: '50%',
+    textAlign: 'left',
+  }
+};
+
 export default PetPreventionApp;
+
+
+
+
+
+
+
+
 
 
 
