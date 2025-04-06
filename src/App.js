@@ -160,7 +160,7 @@ const styles = {
   },
   rightColumn: {
     width: '50%',
-    textAlign: 'left',
+    textAlign: 'right',
   }
 };
 
