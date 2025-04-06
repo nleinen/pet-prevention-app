@@ -120,8 +120,8 @@ const handleGenerate = () => {
                     <span style={{ fontSize: '13px' }}>{rec.description}</span>
                   </div>
                   <div style={styles.rightColumn}>
-                    <div style={{ fontSize: '14px' }}>6-Month: {rec.prices['6-month'] || 'N/A'}</div>
-                    <div style={{ fontSize: '14px' }}>12-Month: {rec.prices['12-month'] || 'N/A'}</div>
+                    <div style={{ fontSize: '16px' }}>6-Month: {rec.prices['6-month'] || 'N/A'}</div>
+                    <div style={{ fontSize: '16px' }}>12-Month: {rec.prices['12-month'] || 'N/A'}</div>
                   </div>
                 </div>
               ))}
