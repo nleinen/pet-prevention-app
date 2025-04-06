@@ -64,9 +64,9 @@ const handleGenerate = () => {
   );
 
   const orderedProducts = {
-    "Heartworm/Flea/Tick": ["Simparica Trio", "Proheart 12 + Bravecto 3m", "Proheart 12 + Nexgard", "Heartgard Plus + Nexgard"],
+    "Heartworm/Flea/Tick": ["Simparica Trio", "Proheart 12 + Bravecto", "Proheart 12 + Nexgard", "Heartgard Plus + Nexgard"],
     "Heartworm": ["Proheart 12", "Heartgard Plus"],
-    "Flea/Tick": ["Bravecto 3m", "Nexgard"]
+    "Flea/Tick": ["Bravecto", "Nexgard"]
   };
 
   const organizedRecommendations = matchedRecommendations.reduce((acc, rec) => {
